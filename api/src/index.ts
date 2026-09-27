@@ -43,7 +43,7 @@ async function body(request: IncomingMessage): Promise<Record<string, unknown>> 
   return parsed as Record<string, unknown>;
 }
 
-const STATIC_ROOT = fileURLToPath(new URL("../../..", import.meta.url));
+const STATIC_ROOT = process.env.STATIC_ROOT ?? fileURLToPath(new URL("../../..", import.meta.url));
 
 async function serveStatic(pathname: string, response: ServerResponse): Promise<boolean> {
   const files: Record<string, string> = {
