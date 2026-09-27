@@ -22,6 +22,7 @@ export class QueueService {
     if (entry.status === "registered") {
       entry.status = transitionStatus(entry.status, "checked_in");
     }
+    entry.checkInAt = now;
     entry.status = transitionStatus(entry.status, "waiting");
     this.emit("patient.checked_in", now, queueEntryId, actorId);
     return this.snapshot(now);
@@ -43,6 +44,8 @@ export class QueueService {
 
   startConsultation(queueEntryId: string, now: number, actorId: string): QueueSnapshot {
     const entry = this.requireEntry(queueEntryId);
+    if (this.state.current) throw new Error("A consultation is already active");
+    if (entry.status !== "called") throw new Error("Patient must be called before consultation starts");
     entry.status = transitionStatus(entry.status, "consulting");
     this.state.current = { queueEntryId, startedAt: now };
     this.emit("consultation.started", now, queueEntryId, actorId);
