@@ -22,17 +22,22 @@ create table if not exists doctors (
 create table if not exists patients (
   id uuid primary key default gen_random_uuid(),
   clinic_id uuid not null references clinics(id) on delete cascade,
+  external_patient_id text not null,
   name text not null,
   phone text,
   date_of_birth date,
   created_at timestamptz not null default now()
 );
 
+create unique index if not exists uq_patients_clinic_external
+  on patients (clinic_id, external_patient_id);
+
 create table if not exists appointments (
   id uuid primary key default gen_random_uuid(),
   clinic_id uuid not null references clinics(id) on delete cascade,
   doctor_id uuid not null references doctors(id) on delete restrict,
   patient_id uuid not null references patients(id) on delete restrict,
+  external_visit_id text,
   window_start timestamptz not null,
   window_end timestamptz not null,
   status text not null default 'scheduled',
@@ -40,12 +45,17 @@ create table if not exists appointments (
   check (window_end > window_start)
 );
 
+create unique index if not exists uq_appointments_doctor_external_visit
+  on appointments (clinic_id, doctor_id, external_visit_id)
+  where external_visit_id is not null;
+
 create table if not exists queue_entries (
   id uuid primary key default gen_random_uuid(),
   clinic_id uuid not null references clinics(id) on delete cascade,
   doctor_id uuid not null references doctors(id) on delete restrict,
   patient_id uuid not null references patients(id) on delete restrict,
   appointment_id uuid references appointments(id) on delete set null,
+  external_visit_id text,
   token text not null,
   patient_type text not null check (patient_type in ('scheduled', 'walk_in')),
   status text not null default 'registered',
@@ -56,6 +66,10 @@ create table if not exists queue_entries (
   created_at timestamptz not null default now(),
   unique (clinic_id, doctor_id, token)
 );
+
+create unique index if not exists uq_queue_entries_doctor_external_visit
+  on queue_entries (clinic_id, doctor_id, external_visit_id)
+  where external_visit_id is not null;
 
 create table if not exists check_ins (
   id uuid primary key default gen_random_uuid(),
@@ -93,3 +107,20 @@ create index if not exists idx_queue_events_clinic_time
 
 create index if not exists idx_appointments_clinic_window
   on appointments (clinic_id, window_start, window_end);
+
+-- Upgrade existing installations created before external integration fields existed.
+alter table patients add column if not exists external_patient_id text;
+alter table appointments add column if not exists external_visit_id text;
+alter table queue_entries add column if not exists external_visit_id text;
+
+create unique index if not exists uq_patients_clinic_external_v2
+  on patients (clinic_id, external_patient_id)
+  where external_patient_id is not null;
+
+create unique index if not exists uq_appointments_doctor_external_visit_v2
+  on appointments (clinic_id, doctor_id, external_visit_id)
+  where external_visit_id is not null;
+
+create unique index if not exists uq_queue_entries_doctor_external_visit_v2
+  on queue_entries (clinic_id, doctor_id, external_visit_id)
+  where external_visit_id is not null;
