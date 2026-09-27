@@ -19,6 +19,9 @@ export class QueueService {
 
   checkIn(queueEntryId: string, now: number, actorId: string): QueueSnapshot {
     const entry = this.requireEntry(queueEntryId);
+    if (entry.status === "registered") {
+      entry.status = transitionStatus(entry.status, "checked_in");
+    }
     entry.status = transitionStatus(entry.status, "waiting");
     this.emit("patient.checked_in", now, queueEntryId, actorId);
     return this.snapshot(now);
