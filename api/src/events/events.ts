@@ -1,3 +1,5 @@
+import { randomUUID } from "node:crypto";
+
 export type ClinicFlowEventType =
   | "patient.checked_in"
   | "queue.position_changed"
@@ -25,13 +27,13 @@ export function createEvent(
   type: ClinicFlowEventType,
   clinicId: string,
   occurredAt: number,
-  values: Omit<ClinicFlowEvent, "id" | "type" | "clinicId" | "occurredAt"> = {},
+  payload: Omit<ClinicFlowEvent, "id" | "type" | "clinicId" | "occurredAt"> = {},
 ): ClinicFlowEvent {
   return {
-    id: crypto.randomUUID(),
+    id: randomUUID(),
     type,
     clinicId,
     occurredAt,
-    ...values,
+    ...payload,
   };
 }
