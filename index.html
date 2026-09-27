@@ -47,6 +47,7 @@ $("completedSub").textContent=state.latestCompleted?.name||"Waiting for completi
 const patients=state.patients.map(cleanPatient).filter(Boolean);
 $("queue").innerHTML=patients.length?patients.map((p,i)=>'<div class="row"><span class="token">'+escapeHtml(p.token||String(i+1))+'</span><span class="name">'+escapeHtml(p.name||"Patient")+'</span><span class="position">'+(i===0?"NEXT":"WAITING")+'</span></div>').join(""):'<div class="empty">No patients remaining.</div>';
 }
+  
 function escapeHtml(v){return String(v).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
 function accept(data){
 if(!data||data.source!=="mediloop-ai"||data.type!=="QUEUE_UPDATE")return;
