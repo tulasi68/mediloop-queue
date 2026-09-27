@@ -1,4 +1,4 @@
-# QMS — Queue Management System
+# ClinicFlow — Real-Time Patient Flow Management
 
 ## Product: ClinicFlow
 
