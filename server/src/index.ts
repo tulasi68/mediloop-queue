@@ -101,7 +101,7 @@ async function mutateQueue(
   });
 }
 
-const server = createServer(async (request, response) => {
+export const server = createServer(async (request, response) => {
   try {
     if (request.method === "OPTIONS") {
       json(response, 204, {});
@@ -288,6 +288,8 @@ const server = createServer(async (request, response) => {
   }
 });
 
-server.listen(PORT, () => {
-  console.log(`ClinicFlow API listening on :${PORT}`);
-});
+if (!process.env.VERCEL) {
+  server.listen(PORT, () => {
+    console.log(`ClinicFlow API listening on :${PORT}`);
+  });
+}
