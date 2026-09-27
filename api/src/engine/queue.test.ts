@@ -5,6 +5,7 @@ import {
   isLate,
   type QueueConfig,
   type QueueEngineState,
+  type QueueEntry,
 } from "./index.js";
 
 const now = Date.parse("2026-09-27T10:00:00+05:30");
@@ -21,12 +22,8 @@ function entry(
   type: "scheduled" | "walk_in",
   checkInAt: number,
   appointmentWindowEnd?: number,
-  clinicalPriority?: {
-    reason: string;
-    confirmedBy: string;
-    confirmedAt: number;
-  },
-) {
+  clinicalPriority?: QueueEntry["clinicalPriority"],
+): QueueEntry {
   return {
     id,
     token,
