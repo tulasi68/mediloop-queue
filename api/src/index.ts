@@ -1,4 +1,7 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
+import { readFile } from "node:fs/promises";
+import { extname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { getPool, withTransaction } from "./db/client.js";
 import {
   completeConsultation,
@@ -38,6 +41,28 @@ async function body(request: IncomingMessage): Promise<Record<string, unknown>> 
     throw new Error("Request body must be a JSON object");
   }
   return parsed as Record<string, unknown>;
+}
+
+const STATIC_ROOT = fileURLToPath(new URL("../../..", import.meta.url));
+
+async function serveStatic(pathname: string, response: ServerResponse): Promise<boolean> {
+  const files: Record<string, string> = {
+    "/": "index.html",
+    "/index.html": "index.html",
+    "/styles.css": "styles.css",
+    "/mock-data.js": "mock-data.js",
+  };
+  const fileName = files[pathname];
+  if (!fileName) return false;
+  try {
+    const data = await readFile(join(STATIC_ROOT, fileName));
+    const contentType = extname(fileName) === ".css" ? "text/css; charset=utf-8" : extname(fileName) === ".js" ? "text/javascript; charset=utf-8" : "text/html; charset=utf-8";
+    response.writeHead(200, { "content-type": contentType });
+    response.end(data);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 function requiredString(input: Record<string, unknown>, key: string): string {
@@ -84,6 +109,10 @@ const server = createServer(async (request, response) => {
     }
 
     const url = new URL(request.url ?? "/", `http://localhost:${PORT}`);
+
+    if (request.method === "GET" && !url.pathname.startsWith("/api/")) {
+      if (await serveStatic(url.pathname, response)) return;
+    }
 
     if (request.method === "GET" && url.pathname === "/health") {
       json(response, 200, { service: "clinicflow-api", status: "ok" });
