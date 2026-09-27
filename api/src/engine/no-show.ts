@@ -12,5 +12,6 @@ export function shouldMarkNoShow(
   if (!isLate(entry, now, graceMinutes)) return false;
 
   const reference = entry.appointmentWindowEnd ?? entry.checkInAt;
+  if (reference === undefined) return false;
   return now >= reference + noShowAfterMinutes * 60_000;
 }
