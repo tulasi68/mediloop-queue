@@ -114,8 +114,7 @@ alter table appointments add column if not exists external_visit_id text;
 alter table queue_entries add column if not exists external_visit_id text;
 
 create unique index if not exists uq_patients_clinic_external_v2
-  on patients (clinic_id, external_patient_id)
-  where external_patient_id is not null;
+  on patients (clinic_id, external_patient_id);
 
 create unique index if not exists uq_appointments_doctor_external_visit_v2
   on appointments (clinic_id, doctor_id, external_visit_id)
