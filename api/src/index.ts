@@ -112,13 +112,18 @@ const server = createServer(async (request, response) => {
       const queueEntryId = requiredString(input, "queueEntryId");
       const actorId = requiredString(input, "actorId");
 
-      const result = await mutateQueue(clinicId, doctorId, actorId, async (service, now) => {
-        service.checkIn(queueEntryId, now, actorId);
-        return { queueEntryId };
-      });
-
-      await withTransaction(async (client) => {
-        await insertCheckIn(client, queueEntryId, Date.now(), actorId);
+      const result = await withTransaction(async (client) => {
+        await lockDoctor(client, doctorId);
+        const state = await loadQueueState(client, clinicId, doctorId);
+        const service = new QueueService(clinicId, CONFIG, state);
+        const eventIndex = service.eventsSince().length;
+        const now = Date.now();
+        const snapshot = service.checkIn(queueEntryId, now, actorId);
+        const entry = state.entries.find((item) => item.id === queueEntryId);
+        if (entry) await persistEntryStatus(client, entry);
+        await insertCheckIn(client, queueEntryId, now, actorId);
+        for (const event of service.eventsSince(eventIndex)) await insertEvent(client, event);
+        return snapshot;
       });
 
       json(response, 200, result);
