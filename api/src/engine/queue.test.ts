@@ -21,6 +21,11 @@ function entry(
   type: "scheduled" | "walk_in",
   checkInAt: number,
   appointmentWindowEnd?: number,
+  clinicalPriority?: {
+    reason: string;
+    confirmedBy: string;
+    confirmedAt: number;
+  },
 ) {
   return {
     id,
@@ -31,6 +36,7 @@ function entry(
     checkInAt,
     status: "waiting" as const,
     ...(appointmentWindowEnd == null ? {} : { appointmentWindowEnd }),
+    ...(clinicalPriority == null ? {} : { clinicalPriority }),
   };
 }
 
