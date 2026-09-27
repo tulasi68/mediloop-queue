@@ -1,1 +1,77 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ClinicFlow Mock</title><link rel="stylesheet" href="styles.css"></head><body><header><b>CLINICFLOW</b><span>Real-time patient flow management</span><nav><a href="?view=staff">Staff</a><a href="?view=patient">Patient</a><a href="?view=doctor">Doctor</a><a href="?view=board">Public Board</a></nav></header><main><div class="intro"><small>DR. RAO — ENT · ROOM 2</small><h1>Appointments. Walk-ins. Waiting. Calling. Delays. One live queue.</h1><p>This is the first clickable mock. The queue advances automatically so we can review the workflow before building the backend.</p></div><section id="view"></section></main><script src="mock-data.js"></script><script>const view=new URLSearchParams(location.search).get("view")||"staff";const root=document.getElementById("view");function esc(x){return String(x).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}function render(s){let h="";if(view==="patient"){const p=s.allWaiting.find(x=>x.token==="06");h='<div class="hero card"><small>YOUR TOKEN</small><strong>06</strong><p>Checked in → Waiting</p></div><div class="metrics"><div class="card"><small>PATIENTS AHEAD</small><b>'+p.ahead+'</b></div><div class="card"><small>ESTIMATED WAIT</small><b>'+p.eta[0]+'–'+p.eta[1]+' min</b></div></div><div class="card"><h2>NOW CONSULTING</h2><b class="token">'+(s.consulting?s.consulting.token:"—")+'</b><p>'+s.status+' · updated just now</p><button onclick="alert(\'Mock: Return Later\')">Return Later</button></div>'}else if(view==="board"){h='<div class="board"><div class="card"><small>NOW CONSULTING</small><b class="token">'+(s.consulting?s.consulting.token:"—")+'</b></div><div class="card"><h2>NEXT</h2><div class="tokens">'+s.next.map(p=>'<b>'+p.token+'</b>').join("")+'</div></div><div class="card wide"><small>WAITING</small><div class="tokens">'+s.waiting.map(p=>'<b>'+p.token+'</b>').join("")+'</div></div><div class="metrics"><div class="card"><small>ESTIMATED WAIT</small><b>'+s.allWaiting[0].eta[0]+'–'+s.allWaiting[0].eta[1]+' min</b></div><div class="card"><small>QUEUE STATUS</small><b>'+s.status+'</b></div></div></div>'}else if(view==="doctor"){h='<div class="metrics"><div class="card"><small>COMPLETED</small><b>'+s.completed+'/14</b></div><div class="card"><small>AVG CONSULT</small><b>'+s.avg+' min</b></div><div class="card"><small>WAITING</small><b>'+s.allWaiting.length+'</b></div><div class="card"><small>BACKLOG</small><b>'+Math.round(s.allWaiting.length*s.avg)+' min</b></div></div><div class="card"><h2>NOW</h2><b class="token">'+(s.consulting?s.consulting.token:"—")+'</b><p>'+(s.consulting?esc(s.consulting.name):"Idle")+'</p></div>'}else{h='<div class="metrics"><div class="card"><small>WAITING</small><b>'+s.allWaiting.length+'</b></div><div class="card"><small>COMPLETED</small><b>'+s.completed+'/14</b></div><div class="card"><small>AVG CONSULT</small><b>'+s.avg+' min</b></div><div class="card"><small>STATUS</small><b>'+s.status+'</b></div></div><div class="cols"><div class="card"><h2>NOW CONSULTING</h2><b class="token">'+(s.consulting?s.consulting.token:"—")+'</b><p>'+(s.consulting?esc(s.consulting.name):"Idle")+'</p></div><div class="card"><h2>NEXT</h2>'+s.next.map(p=>'<p><b>'+p.token+'</b> · '+esc(p.name)+'</p>').join("")+'</div><div class="card wide"><h2>WAITING</h2>'+s.waiting.map(p=>'<p><b>'+p.token+'</b> · '+esc(p.name)+' <span class="muted">'+p.ahead+' ahead</span></p>').join("")+'</div><div class="card"><h2>NOT ARRIVED</h2><p>09</p><p>10</p></div></div>'}root.innerHTML=h}render(ClinicFlowMock.snapshot());ClinicFlowMock.subscribe(render);setInterval(()=>document.querySelector("header span").textContent=new Date().toLocaleTimeString("en-IN"),1000);</script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ClinicFlow</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f5f7fa;color:#172033;font:16px system-ui,-apple-system,Segoe UI,sans-serif}
+header{background:#fff;border-bottom:1px solid #dfe5ec;padding:18px 24px;display:flex;justify-content:space-between;align-items:center}
+header strong{letter-spacing:.12em}header span{display:block;color:#64748b;font-size:13px;margin-top:3px}
+main{max-width:900px;margin:0 auto;padding:28px 20px}.clinic{color:#64748b;margin-bottom:8px}
+h1{font-size:34px;margin:0 0 24px}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px}
+.card{background:#fff;border:1px solid #dfe5ec;border-radius:14px;padding:20px}.label{color:#64748b;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.value{font-size:30px;font-weight:800;margin-top:8px}.sub{color:#64748b;font-size:13px;margin-top:4px}
+.queue{background:#fff;border:1px solid #dfe5ec;border-radius:14px;overflow:hidden}.queue-head{padding:16px 18px;border-bottom:1px solid #e8edf2;font-weight:800}
+.row{display:flex;justify-content:space-between;align-items:center;padding:15px 18px;border-bottom:1px solid #edf1f5}.row:last-child{border-bottom:0}
+.token{font-weight:800;font-size:20px;min-width:70px}.name{flex:1}.position{color:#64748b;font-size:13px}
+.empty{text-align:center;padding:45px 20px;color:#64748b}.status{margin-top:14px;color:#64748b;font-size:13px}
+@media(max-width:650px){.cards{grid-template-columns:1fr}.value{font-size:26px}}
+</style>
+</head>
+<body>
+<header><div><strong>CLINICFLOW</strong><span>Real-time patient queue</span></div><span id="connection">Waiting for MediLoop</span></header>
+<main>
+<div class="clinic" id="clinic">MediLoop Clinical AI</div>
+<h1>Today's Queue</h1>
+<section class="cards">
+<div class="card"><div class="label">New patient</div><div class="value" id="added">—</div><div class="sub" id="addedSub">Waiting for registration</div></div>
+<div class="card"><div class="label">Completed</div><div class="value" id="completed">—</div><div class="sub" id="completedSub">Waiting for update</div></div>
+<div class="card"><div class="label">Patients remaining</div><div class="value" id="remaining">0</div><div class="sub">In today's queue</div></div>
+</section>
+<section class="queue"><div class="queue-head">Live queue</div><div id="queue"><div class="empty">Waiting for MediLoop Clinical AI to send today's queue.</div></div></section>
+<div class="status" id="status">No queue update received.</div>
+</main>
+<script>
+const ALLOWED_ORIGINS=new Set(["https://mediloop-ai.vercel.app","http://localhost:3000","http://localhost:3001"]);
+const state={patients:[],remainingCount:0,latestAdded:null,latestCompleted:null,clinicName:"MediLoop Clinical AI"};
+const $=id=>document.getElementById(id);
+function cleanPatient(p){return p&&typeof p==="object"?{id:String(p.id??""),token:String(p.token??""),name:String(p.name??"")}:null}
+function render(){
+$("clinic").textContent=state.clinicName||"MediLoop Clinical AI";
+$("remaining").textContent=String(state.remainingCount);
+$("added").textContent=state.latestAdded?.token||"—";
+$("addedSub").textContent=state.latestAdded?.name||"Waiting for registration";
+$("completed").textContent=state.latestCompleted?.token||"—";
+$("completedSub").textContent=state.latestCompleted?.name||"Waiting for completion";
+const patients=state.patients.map(cleanPatient).filter(Boolean);
+$("queue").innerHTML=patients.length?patients.map((p,i)=>'<div class="row"><span class="token">'+escapeHtml(p.token||String(i+1))+'</span><span class="name">'+escapeHtml(p.name||"Patient")+'</span><span class="position">'+(i===0?"NEXT":"WAITING")+'</span></div>').join(""):'<div class="empty">No patients remaining.</div>';
+}
+function escapeHtml(v){return String(v).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+function accept(data){
+if(!data||data.source!=="mediloop-ai"||data.type!=="QUEUE_UPDATE")return;
+const p=data.patient?cleanPatient(data.patient):null;
+if(Array.isArray(data.patients))state.patients=data.patients.map(cleanPatient).filter(Boolean);
+if(Number.isFinite(Number(data.remainingCount)))state.remainingCount=Number(data.remainingCount);
+if(data.clinicName)state.clinicName=String(data.clinicName);
+if(data.action==="added"&&p)state.latestAdded=p;
+if(data.action==="completed"&&p)state.latestCompleted=p;
+$("connection").textContent="Connected to MediLoop";
+$("status").textContent="Queue updated "+new Date().toLocaleTimeString("en-IN");
+render();
+}
+window.addEventListener("message",event=>{
+if(!ALLOWED_ORIGINS.has(event.origin))return;
+accept(event.data);
+if(event.source&&typeof event.source.postMessage==="function")event.source.postMessage({source:"clinicflow",type:"QUEUE_READY"},event.origin);
+});
+if(window.parent!==window&&document.referrer){
+try{
+const origin=new URL(document.referrer).origin;
+if(ALLOWED_ORIGINS.has(origin))window.parent.postMessage({source:"clinicflow",type:"QUEUE_READY"},origin);
+}catch{}
+}
+render();
+</script>
+</body>
+</html>
