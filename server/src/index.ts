@@ -114,7 +114,7 @@ export const server = createServer(async (request, response) => {
       if (await serveStatic(url.pathname, response)) return;
     }
 
-    if (request.method === "GET" && url.pathname === "/health") {
+    if (request.method === "GET" && (url.pathname === "/health" || url.pathname === "/api/health")) {
       json(response, 200, { service: "clinicflow-api", status: "ok" });
       return;
     }
