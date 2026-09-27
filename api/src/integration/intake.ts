@@ -35,7 +35,8 @@ export async function createQueueEntryFromVisit(client: PoolClient, input: Queue
   if (windowStart && windowEnd && windowEnd <= windowStart) throw new Error("windowEnd must be after windowStart");
 
   const doctor = await client.query<{ id: string; clinic_id: string }>("select id, clinic_id from doctors where id = $1", [input.doctorId]);
-  if (doctor.rowCount !== 1 || doctor.rows[0].clinic_id !== input.clinicId) throw new Error("Doctor not found for clinic");
+  const doctorRow = doctor.rows[0];
+  if (doctor.rowCount !== 1 || !doctorRow || doctorRow.clinic_id !== input.clinicId) throw new Error("Doctor not found for clinic");
 
   const patient = await client.query<{ id: string }>(
     `insert into patients (clinic_id, external_patient_id, name)
@@ -54,6 +55,7 @@ export async function createQueueEntryFromVisit(client: PoolClient, input: Queue
   );
   if (existing.rowCount === 1) {
     const row = existing.rows[0];
+    if (!row) throw new Error("Unable to read existing queue entry");
     if (row.patient_id !== patientId) throw new Error("Visit is already linked to another patient");
     return { queueEntryId: row.id, token: row.token, patientId, externalPatientId: input.externalPatientId, externalVisitId: input.externalVisitId, patientType: input.patientType };
   }
@@ -76,7 +78,8 @@ export async function createQueueEntryFromVisit(client: PoolClient, input: Queue
   let maxNumber = 0;
   for (const row of tokenRows.rows) {
     const match = new RegExp("^" + prefix + "-(\\d+)$").exec(row.token);
-    if (match) maxNumber = Math.max(maxNumber, Number(match[1]));
+    const numberText = match?.[1];
+    if (numberText) maxNumber = Math.max(maxNumber, Number(numberText));
   }
   const token = `${prefix}-${String(maxNumber + 1).padStart(2, "0")}`;
 
