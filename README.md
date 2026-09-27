@@ -90,9 +90,9 @@ The clinic waiting room becomes a live service journey rather than an opaque per
 ## 4. Core Workflow
 
 ```
-APPOINTMENT / WALK-IN
+UPSTREAM REGISTRATION
         ↓
-REGISTRATION
+CLINICFLOW INTAKE
         ↓
 CHECK-IN
         ↓
@@ -779,18 +779,17 @@ It should work:
 3. Integrated with MediLoop AI
 4. Integrated with other future clinical systems
 
-Conceptual write APIs:
+Current integration write API:
 
 ```
-POST /patients
-POST /appointments
-POST /check-ins
-POST /walk-ins
-POST /consultations/start
-POST /consultations/complete
-POST /queue/priority
-POST /queue/delay
+POST /api/queue-entries
+POST /api/check-ins
+POST /api/call-next
+POST /api/consultations/start
+POST /api/consultations/complete
 ```
+
+ClinicFlow does not duplicate patient registration. An upstream registration system supplies the patient and visit identifiers; ClinicFlow creates the operational queue entry.
 
 Conceptual read APIs:
 
@@ -941,8 +940,8 @@ The commercial positioning should make it clear:
 
 ## Core queue
 
-1. Appointment windows
-2. Patient registration
+1. Appointment windows received from upstream registration
+2. Queue entry intake
 3. Check-in
 4. Automatic token
 5. Walk-in registration
