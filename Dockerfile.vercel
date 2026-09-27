@@ -1,17 +1,19 @@
 # ClinicFlow single-container deployment for Vercel Hobby.
-# The API and approved UI run as one HTTP service, avoiding Vercel's
-# serverless-function discovery of the files under api/.
+# Uses `server/` (not `api/`) so Vercel does not treat source files
+# as individual serverless functions (Hobby limit: 12).
 FROM node:22-alpine AS build
 WORKDIR /app
-COPY api/package.json ./api/package.json
-RUN npm install --prefix api
-COPY api ./api
-RUN npm run build --prefix api
+COPY server/package.json ./server/package.json
+RUN npm install --prefix server
+COPY server ./server
+RUN npm run build --prefix server
 
 FROM node:22-alpine
 WORKDIR /app
-COPY --from=build /app/api/node_modules ./api/node_modules
-COPY --from=build /app/api/dist ./api/dist
+COPY --from=build /app/server/node_modules ./server/node_modules
+COPY --from=build /app/server/dist ./server/dist
 COPY index.html styles.css mock-data.js ./
 ENV NODE_ENV=production
-CMD ["node", "api/dist/index.js"]
+ENV STATIC_ROOT=/app
+EXPOSE 3001
+CMD ["node", "server/dist/index.js"]

@@ -3,11 +3,11 @@ name: ClinicFlow API
 on:
   push:
     paths:
-      - "api/**"
+      - "server/**"
       - ".github/workflows/api.yml"
   pull_request:
     paths:
-      - "api/**"
+      - "server/**"
       - ".github/workflows/api.yml"
 
 jobs:
@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: api
+        working-directory: server
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
