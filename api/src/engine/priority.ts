@@ -28,6 +28,6 @@ export function sortQueue(
     .sort((a, b) => {
       const rank = priorityRank(a, now, graceMinutes) - priorityRank(b, now, graceMinutes);
       if (rank !== 0) return rank;
-      return a.checkInAt - b.checkInAt || a.id.localeCompare(b.id);
+      return (a.checkInAt ?? Number.MAX_SAFE_INTEGER) - (b.checkInAt ?? Number.MAX_SAFE_INTEGER) || a.id.localeCompare(b.id);
     });
 }
