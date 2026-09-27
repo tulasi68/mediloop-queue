@@ -10,6 +10,7 @@ import {
   persistEntryStatus,
 } from "./db/queue-repository.js";
 import { QueueService } from "./engine/service.js";
+import { createQueueEntryFromVisit } from "./integration/intake.js";
 
 const PORT = Number(process.env.PORT ?? 3001);
 const CONFIG = {
@@ -102,6 +103,38 @@ const server = createServer(async (request, response) => {
       } finally {
         client.release();
       }
+      return;
+    }
+
+    if (request.method === "POST" && url.pathname === "/api/queue-entries") {
+      const input = await body(request);
+      const clinicId = requiredString(input, "clinicId");
+      const doctorId = requiredString(input, "doctorId");
+      const externalPatientId = requiredString(input, "externalPatientId");
+      const patientName = requiredString(input, "patientName");
+      const externalVisitId = requiredString(input, "externalVisitId");
+      const patientType = input.patientType;
+      if (patientType !== "scheduled" && patientType !== "walk_in") {
+        throw new Error("patientType must be scheduled or walk_in");
+      }
+      const windowStart = typeof input.windowStart === "string" ? input.windowStart : undefined;
+      const windowEnd = typeof input.windowEnd === "string" ? input.windowEnd : undefined;
+
+      const result = await withTransaction(async (client) => {
+        await lockDoctor(client, doctorId);
+        return createQueueEntryFromVisit(client, {
+          clinicId,
+          doctorId,
+          externalPatientId,
+          patientName,
+          externalVisitId,
+          patientType,
+          ...(windowStart ? { windowStart } : {}),
+          ...(windowEnd ? { windowEnd } : {}),
+        });
+      });
+
+      json(response, 201, result);
       return;
     }
 
