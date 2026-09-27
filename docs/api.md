@@ -18,6 +18,42 @@ Returns the current queue snapshot with:
 - patients ahead
 - estimated wait range
 
+## Create queue entry from an upstream visit
+
+`POST /api/queue-entries`
+
+ClinicFlow does not register the patient. An upstream system supplies the existing patient and visit identifiers.
+
+Scheduled visit:
+
+```json
+{
+  "clinicId": "clinic-id",
+  "doctorId": "doctor-id",
+  "externalPatientId": "mediloop-patient-id",
+  "patientName": "Meena",
+  "externalVisitId": "mediloop-visit-id",
+  "patientType": "scheduled",
+  "windowStart": "2026-09-28T10:30:00+05:30",
+  "windowEnd": "2026-09-28T11:00:00+05:30"
+}
+```
+
+Walk-in:
+
+```json
+{
+  "clinicId": "clinic-id",
+  "doctorId": "doctor-id",
+  "externalPatientId": "mediloop-patient-id",
+  "patientName": "Meena",
+  "externalVisitId": "mediloop-visit-id",
+  "patientType": "walk_in"
+}
+```
+
+The response contains the ClinicFlow queue entry ID and token. The external visit ID makes intake idempotent, so retrying the same visit does not create a duplicate queue entry.
+
 ## Check in
 
 `POST /api/check-ins`
