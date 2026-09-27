@@ -20,7 +20,7 @@ export interface QueueEntry {
   type: PatientType;
   appointmentWindowStart?: number;
   appointmentWindowEnd?: number;
-  checkInAt: number;
+  checkInAt?: number;
   status: QueueStatus;
   clinicalPriority?: {
     reason: string;
