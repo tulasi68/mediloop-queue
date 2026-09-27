@@ -1,0 +1,15 @@
+{
+  "name": "@clinicflow/api",
+  "private": true,
+  "version": "0.1.0",
+  "description": "ClinicFlow queue engine and API foundation",
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
+  }
+}
